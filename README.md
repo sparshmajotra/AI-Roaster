@@ -1,123 +1,282 @@
-# Roastly
+# AI Roaster
 
-Roastly is a full-stack AI social platform where people submit images or text and receive playful AI roasts, scores, vibe tags, aura labels, improvement tips, and community feedback.
+AI Roaster is a small full-stack social app where a user can paste text, choose a roast style, and get back a scored roast with vibe tags, an aura label, and improvement tips.
 
-## Stack
+The project is built as a portfolio-style app, so it has more than just a UI. There is a Django API, auth, post models, comments/reactions/bookmarks, moderation hooks, Celery tasks, WebSocket notification plumbing, Docker files, and a simple Windows startup script.
 
-- Frontend: Next.js 16, React 19, Tailwind CSS 4, Framer Motion, lucide-react
-- Backend: Django 5.2, Django REST Framework, Simple JWT, Channels, Celery
-- Data: PostgreSQL in Docker, SQLite fallback for quick local backend checks
-- Async/realtime: Redis, Celery worker, Channels WebSocket notifications
-- AI/media: OpenAI moderation + multimodal roast generation, Cloudinary upload hook
-- Deployment: Docker Compose and GitHub Actions CI
+## What It Does
 
-## Project Structure
+- Submit text or an image caption for roasting
+- Pick categories like bio, outfit, setup, resume, dating profile, room, or portfolio
+- Choose roast styles such as Brutal Roast, Gen Z Mode, Corporate Reviewer, and more
+- Get a 5-6 line roast, score, aura, tags, and improvement tips
+- Use a local demo login during development
+- Test the backend API from Swagger docs
+- Run everything locally with one script
+
+## Tech Stack
+
+Frontend:
+
+- Next.js
+- React
+- Tailwind CSS
+- Framer Motion
+- lucide-react icons
+
+Backend:
+
+- Django
+- Django REST Framework
+- Simple JWT
+- Celery
+- Redis
+- Django Channels
+- PostgreSQL support
+- SQLite fallback for local testing
+
+AI/media:
+
+- OpenAI-ready roast generation
+- OpenAI moderation-ready safety check
+- Cloudinary upload hook
+
+## Folder Structure
 
 ```text
-frontend/   Next app with the polished Roastly product UI
-backend/    Django API, social models, AI pipeline, moderation, notifications
+.
+|-- backend/              Django API
+|-- frontend/             Next.js frontend
+|-- scripts/              Windows helper scripts
+|-- docker-compose.yml    Full local stack with Postgres + Redis
+|-- requirements.txt      Root pointer to backend requirements
+`-- README.md
 ```
 
-## Quick Start
+## Requirements
 
-```bash
-cp .env.example .env
-docker compose up --build
+Install these first:
+
+- Node.js 22 or newer
+- Python 3.13 or newer
+- Git
+
+Optional:
+
+- Docker Desktop, if you want to run Postgres and Redis through Docker
+
+Python dependencies are listed in:
+
+```text
+backend/requirements.txt
 ```
 
-Then run migrations in the backend container:
+There is also a root `requirements.txt` that points to the backend requirements file.
 
-```bash
-docker compose exec backend python manage.py migrate
-docker compose exec backend python manage.py createsuperuser
-```
+## Quick Start On Windows
 
-Open:
-
-- Frontend: http://localhost:3000
-- API docs: http://localhost:8000/api/docs/
-- Admin: http://localhost:8000/admin/
-
-## Easiest Local Test On Windows
-
-Double-click `start-roastly.bat`, or run:
+From the project root, run:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\start-dev.ps1
 ```
 
-Then open:
+Or just double-click:
 
-- Frontend: http://127.0.0.1:3000
-- API docs: http://127.0.0.1:8000/api/docs/
-
-To verify the local stack:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-smoke.ps1
+```text
+start-roastly.bat
 ```
 
-To stop both dev servers, double-click `stop-roastly.bat`, or run:
+The script will:
+
+- create/use the backend virtual environment
+- install Python dependencies
+- install frontend dependencies
+- run Django migrations
+- start the backend on port `8000`
+- start the frontend on port `3000`
+
+Open the app:
+
+```text
+http://127.0.0.1:3000
+```
+
+Open API docs:
+
+```text
+http://127.0.0.1:8000/api/docs/
+```
+
+Stop the app:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\stop-dev.ps1
 ```
 
-## Local Frontend Only
+Or double-click:
 
-```bash
+```text
+stop-roastly.bat
+```
+
+## Smoke Test
+
+After starting the app, run:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-smoke.ps1
+```
+
+Or double-click:
+
+```text
+test-roastly.bat
+```
+
+The smoke test checks:
+
+- frontend is reachable
+- backend docs are reachable
+- demo login works
+- roast creation works
+- roast output has at least 5 lines
+
+## Manual Frontend Setup
+
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
-The UI includes a local interactive AI-result mock. Set `NEXT_PUBLIC_API_URL` when wiring it to the Django API.
+Frontend URL:
 
-## Local Backend Only
+```text
+http://127.0.0.1:3000
+```
 
-```bash
+## Manual Backend Setup
+
+```powershell
 cd backend
 python -m venv .venv
-.venv\Scripts\activate
+.\.venv\Scripts\activate
 pip install -r requirements.txt
 python manage.py migrate
-python manage.py runserver
+python manage.py runserver 127.0.0.1:8000
 ```
 
-If `OPENAI_API_KEY` is empty, the roast task uses a deterministic mock response so development does not block on external services.
+Backend URL:
 
-## Key API Routes
-
-- `POST /api/v1/accounts/users/` register
-- `POST /api/v1/auth/token/` JWT login
-- `GET /api/v1/accounts/users/me/` current profile
-- `POST /api/v1/accounts/users/{id}/follow/`
-- `GET /api/v1/roasts/posts/trending/`
-- `POST /api/v1/roasts/posts/` create roast submission
-- `GET|POST /api/v1/roasts/posts/{id}/comments/`
-- `POST|DELETE /api/v1/roasts/posts/{id}/react/`
-- `POST|DELETE /api/v1/roasts/posts/{id}/bookmark/`
-- `GET /api/v1/moderation/queue/` admin review queue
-- `WS /ws/notifications/{user_id}/?token=<jwt_access_token>`
-
-## AI Safety
-
-Submissions run through moderation before AI generation. The roast system prompt enforces playful, non-hateful humor and asks the model to return JSON:
-
-```json
-{
-  "roast": "...",
-  "rating": 7.6,
-  "vibe_tags": ["..."],
-  "aura": "...",
-  "improvement_suggestions": ["..."]
-}
+```text
+http://127.0.0.1:8000
 ```
 
-## Production Notes
+API docs:
 
-- Move secrets to your platform secret manager.
-- Set `DJANGO_DEBUG=False`, strict `DJANGO_ALLOWED_HOSTS`, and production CORS origins.
-- Use managed PostgreSQL, Redis, object storage, error tracking, and structured logs.
-- Run Celery workers separately from the ASGI web process.
-- Add CDN rules for uploaded media and generated share cards.
+```text
+http://127.0.0.1:8000/api/docs/
+```
+
+## Environment Variables
+
+Copy the example file:
+
+```powershell
+copy .env.example .env
+```
+
+Most local testing works without an OpenAI key. If `OPENAI_API_KEY` is empty, the backend uses a mock roast response so the app still runs.
+
+Useful variables:
+
+```text
+DJANGO_SECRET_KEY=
+DJANGO_DEBUG=True
+DATABASE_URL=
+REDIS_URL=
+OPENAI_API_KEY=
+OPENAI_ROAST_MODEL=
+OPENAI_MODERATION_MODEL=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+```
+
+## Docker Setup
+
+If Docker Desktop is running:
+
+```powershell
+copy .env.example .env
+docker compose up --build
+```
+
+Then apply migrations:
+
+```powershell
+docker compose exec backend python manage.py migrate
+```
+
+Create an admin user:
+
+```powershell
+docker compose exec backend python manage.py createsuperuser
+```
+
+Open:
+
+```text
+Frontend: http://localhost:3000
+API docs: http://localhost:8000/api/docs/
+Admin:    http://localhost:8000/admin/
+```
+
+## Useful API Routes
+
+```text
+POST   /api/v1/accounts/users/
+POST   /api/v1/accounts/users/demo_token/
+POST   /api/v1/auth/token/
+GET    /api/v1/accounts/users/me/
+POST   /api/v1/roasts/posts/
+GET    /api/v1/roasts/posts/trending/
+GET    /api/v1/roasts/posts/recent/
+GET    /api/v1/roasts/posts/{id}/comments/
+POST   /api/v1/roasts/posts/{id}/comments/
+POST   /api/v1/roasts/posts/{id}/react/
+POST   /api/v1/roasts/posts/{id}/bookmark/
+GET    /api/v1/moderation/queue/
+```
+
+## Development Checks
+
+Frontend:
+
+```powershell
+cd frontend
+npm run lint
+npm run build
+```
+
+Backend:
+
+```powershell
+cd backend
+.\.venv\Scripts\activate
+python manage.py check
+```
+
+Smoke test from project root:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-smoke.ps1
+```
+
+## Notes
+
+This is a development project, not a production moderation policy. The brutal roast mode is intentionally sharper, but the backend prompt still avoids hate speech, slurs, racist content, threats, and sexual harassment.
+
+Before deploying publicly, use real environment secrets, managed Postgres/Redis, cloud storage for uploads, proper logging, and production-safe Django settings.
