@@ -234,6 +234,23 @@ API docs: http://localhost:8000/api/docs/
 Admin:    http://localhost:8000/admin/
 ```
 
+## Deploying
+
+Use Render for the Django backend and Vercel for the Next.js frontend.
+
+The repo includes:
+
+```text
+render.yaml
+DEPLOYMENT.md
+```
+
+Full deployment steps are in:
+
+```text
+DEPLOYMENT.md
+```
+
 ## Useful API Routes
 
 ```text
