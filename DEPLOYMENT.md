@@ -41,9 +41,10 @@ The backend service uses:
 
 ```text
 buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
-preDeployCommand: python manage.py migrate
-startCommand: daphne -b 0.0.0.0 -p $PORT roastly.asgi:application
+startCommand: python manage.py migrate && daphne -b 0.0.0.0 -p $PORT roastly.asgi:application
 ```
+
+Render's free tier does not support `preDeployCommand`, so migrations run at service startup.
 
 Render will ask for these optional secrets:
 
