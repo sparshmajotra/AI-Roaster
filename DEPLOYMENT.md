@@ -7,12 +7,12 @@ backend/   Django API
 frontend/  Next.js app
 ```
 
-The simplest deployment is:
+The simplest free deployment is now:
 
 - Backend on Render
-- Frontend on Vercel
+- Frontend on Render Static Sites
 
-That keeps the Django API, database, and frontend separate and easier to debug.
+That keeps the Django API, database, and frontend separate while avoiding Vercel monorepo detection issues.
 
 ## 1. Deploy The Backend On Render
 
@@ -34,6 +34,7 @@ Steps:
 
 It creates:
 
+- `ai-roaster-frontend` static site
 - `ai-roaster-api` web service
 - `ai-roaster-db` PostgreSQL database
 
@@ -70,26 +71,40 @@ https://ai-roaster-api.onrender.com/health/
 https://ai-roaster-api.onrender.com/api/docs/
 ```
 
-## 2. Deploy The Frontend On Vercel
+## 2. Deploy The Frontend On Render
 
-Steps:
+If you used the Blueprint, Render should create the frontend static site automatically.
 
-1. Go to Vercel.
-2. Click **Add New Project**.
-3. Import the same GitHub repo:
+If you create it manually:
+
+1. Go to Render.
+2. Click **New +**.
+3. Choose **Static Site**.
+4. Connect this GitHub repo:
 
    ```text
    https://github.com/sparshmajotra/AI-Roaster
    ```
 
-4. Set **Root Directory** to:
+5. Set **Root Directory** to:
 
    ```text
    frontend
    ```
 
-5. Framework should be detected as **Next.js**.
-6. Add this environment variable:
+6. Set **Build Command** to:
+
+   ```text
+   npm install && npm run build
+   ```
+
+7. Set **Publish Directory** to:
+
+   ```text
+   out
+   ```
+
+8. Add this environment variable:
 
    ```text
    NEXT_PUBLIC_API_URL=https://ai-roaster-api.onrender.com/api/v1
@@ -97,28 +112,28 @@ Steps:
 
    If Render gives you a different backend URL, use that instead.
 
-7. Deploy.
+9. Deploy.
 
 ## 3. Connect Frontend URL Back To Backend
 
-Once Vercel gives you a frontend URL, copy it. It will look like:
+Once Render gives you a frontend URL, copy it. It will look like:
 
 ```text
-https://your-project.vercel.app
+https://ai-roaster-frontend.onrender.com
 ```
 
 In Render, open the `ai-roaster-api` service and update environment variables:
 
 ```text
-CORS_ALLOWED_ORIGINS=https://your-project.vercel.app
-ROASTLY_FRONTEND_URL=https://your-project.vercel.app
-CSRF_TRUSTED_ORIGINS=https://your-project.vercel.app
+CORS_ALLOWED_ORIGINS=https://ai-roaster-frontend.onrender.com
+ROASTLY_FRONTEND_URL=https://ai-roaster-frontend.onrender.com
+CSRF_TRUSTED_ORIGINS=https://ai-roaster-frontend.onrender.com
 ```
 
-The included Render config already allows Vercel preview URLs through:
+The included Render config already allows Render and Vercel preview URLs through:
 
 ```text
-CORS_ALLOWED_ORIGIN_REGEXES=^https://.*\.vercel\.app$
+CORS_ALLOWED_ORIGIN_REGEXES=^https://.*\.vercel\.app$,^https://.*\.onrender\.com$
 ```
 
 Still, setting the exact production frontend URL is cleaner.
@@ -127,7 +142,7 @@ Redeploy the backend after changing environment variables.
 
 ## 4. Test Production
 
-Open the Vercel frontend and press **Roast me**.
+Open the Render frontend and press **Roast me**.
 
 You can also test the backend directly:
 

@@ -236,7 +236,7 @@ Admin:    http://localhost:8000/admin/
 
 ## Deploying
 
-Use Render for the Django backend and Vercel for the Next.js frontend.
+Use Render for the Django backend and Render Static Sites for the Next.js frontend.
 
 The repo includes:
 
