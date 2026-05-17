@@ -18,6 +18,7 @@ def env_bool(name: str, default: bool = False) -> bool:
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-roastly-secret-key")
 DEBUG = env_bool("DJANGO_DEBUG", True)
+ROASTLY_ENABLE_DEMO_LOGIN = env_bool("ROASTLY_ENABLE_DEMO_LOGIN", False)
 ALLOWED_HOSTS = [host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(",")]
 
 INSTALLED_APPS = [

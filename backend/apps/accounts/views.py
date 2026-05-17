@@ -49,8 +49,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"], permission_classes=[AllowAny])
     def demo_token(self, request):
-        if not settings.DEBUG:
-            return Response({"detail": "Demo login is disabled outside DEBUG."}, status=status.HTTP_403_FORBIDDEN)
+        if not (settings.DEBUG or settings.ROASTLY_ENABLE_DEMO_LOGIN):
+            return Response({"detail": "Demo login is disabled."}, status=status.HTTP_403_FORBIDDEN)
 
         user, _ = User.objects.get_or_create(
             username="demo_roaster",
